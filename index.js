@@ -20,7 +20,7 @@ const SDK_KEY = process.env.SDK_KEY;
 const SDK_SECRET = process.env.SDK_SECRET;
 
 const corsOptions = {
-  origin: "http://localhost:5173", // React frontend's URL
+//  origin: "http://localhost:5173", // React frontend's URL
   credentials: true, // Allow cookies to be sent and received
 };
 // Use CORS to allow cross-origin requests
@@ -31,7 +31,8 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Routes
-// app.use("/patients", require("./routes/patientRoutes"));
+app.use("/patients", require("./routes/patientRoutes"));
+
 //app.use(auth);
 // Signature route
 // app.get("/signature", (req, res) => {

@@ -47,10 +47,14 @@ const PatientSchema = new Schema(
     },
     googleId: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
     },
     password: {
+      type: String,
+      required: false,
+    },
+    refreshToken: {
       type: String,
       required: false,
     },
@@ -92,7 +96,6 @@ PatientSchema.pre("save", async function (next) {
 
 // Add a new patient
 PatientSchema.statics.addPatient = async function (patientData) {
-  
   try {
     // Check if a patient with the given email already exists
     const existingPatient = await this.findOne({
@@ -124,7 +127,7 @@ PatientSchema.statics.getPatientByGoogleId = async function (googleId) {
   try {
     const patient = await this.findOne({ googleId: googleId });
     if (!patient) {
-      return false
+      return false;
     }
     return patient;
   } catch (error) {
