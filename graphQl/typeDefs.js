@@ -2,8 +2,8 @@ const { gql } = require("apollo-server");
 
 module.exports = gql`
   type Patient {
-    firstName: String!
-    lastName: String!
+    firstName: String
+    lastName: String
     dateOfBirth: String!
     gender: String
     email: String!

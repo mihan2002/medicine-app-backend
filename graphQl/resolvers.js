@@ -3,7 +3,8 @@ const Patient = require("../model/patientModel");
 module.exports = {
   Query: {
     // Get a specific patient by email
-    async getPatientByID(_, id,context) {
+    async getPatientByID(_, id, context) {
+      console.log(context);
       return await Patient.findOne({ _id: context.user });
     },
     // Get all patients with an optional limit on the number returned
@@ -13,8 +14,6 @@ module.exports = {
   },
 
   Mutation: {
-    
-
     // Delete a patient by ID
     async deletePatient(_, { email }) {
       const wasDeleted = (await Patient.deleteOne({ email: email }))
