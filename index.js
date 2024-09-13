@@ -7,6 +7,10 @@ const bodyParser = require("body-parser");
 require("./config/passportSetup");
 require("dotenv").config();
 
+const cookieParser = require("cookie-parser");
+
+// Add cookie-parser middleware
+
 const MDB = process.env.MONGO_URI;
 
 const typeDefs = require("./graphQl/typeDefs");
@@ -20,12 +24,16 @@ const SDK_KEY = process.env.SDK_KEY;
 const SDK_SECRET = process.env.SDK_SECRET;
 
 const corsOptions = {
-//  origin: "http://localhost:5173", // React frontend's URL
-  credentials: true, // Allow cookies to be sent and received
+  origin: "http://localhost:5173", // React frontend's URL
+  
+  credentials: true, // Allow cookies (credentials) to be sent and received
 };
+
 // Use CORS to allow cross-origin requests
 app.use(cors(corsOptions));
 
+// Add cookie-parser middleware
+app.use(cookieParser());
 // Use body-parser to parse JSON bodies into JS objects
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
@@ -33,7 +41,6 @@ app.use(express.urlencoded({ extended: false }));
 // Routes
 app.use("/patients", require("./routes/patientRoutes"));
 
-//app.use(auth);
 // Signature route
 // app.get("/signature", (req, res) => {
 //   const iat = Math.round(new Date().getTime() / 1000) - 30;
@@ -57,60 +64,37 @@ app.use("/patients", require("./routes/patientRoutes"));
 //   res.send(sdkJWT);
 // });
 
-
-
-
 const passport = require("passport");
 const authRoute = require("./routes/authRoutes");
 const cookieSession = require("cookie-session");
 require("./config/passportSetup");
 
-
 app.use(
-	cookieSession({
-		name: "session",
-		keys: ["cyberwolve"],
-		maxAge: 24 * 60 * 60 * 100,
-	})
+  cookieSession({
+    name: "session",
+    keys: ["cyberwolve"],
+    maxAge: 24 * 60 * 60 * 100,
+  })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-
 app.use("/auth", authRoute);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.use(auth);
 
 // Apollo Server setup
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: ({ req }) => {
+    return { user: req.user }; // This will be available to resolvers
+  },
 });
 
 server.start().then(() => {
-  server.applyMiddleware({ app });
+  server.applyMiddleware({ app, cors: false });
 
   mongoose
     .connect(MDB, { useNewUrlParser: true, useUnifiedTopology: true })

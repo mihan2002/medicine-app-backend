@@ -3,8 +3,8 @@ const Patient = require("../model/patientModel");
 module.exports = {
   Query: {
     // Get a specific patient by email
-    async getPatientByEmail(_, { email }) {
-      return await Patient.findOne({ email: email });
+    async getPatientByID(_, id,context) {
+      return await Patient.findOne({ _id: context.user });
     },
     // Get all patients with an optional limit on the number returned
     async getAllPatients() {

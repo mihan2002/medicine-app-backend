@@ -2,11 +2,13 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Patient = require("../model/patientModel");
 
+// Registers a new patient
 exports.register = async (req, res) => {
   const { firstName, lastName, dateOfBirth, gender, email, password } =
     req.body;
 
   try {
+    // Create a new patient using the Patient model
     const newPatient = await Patient.addPatient({
       firstName,
       lastName,
@@ -16,6 +18,7 @@ exports.register = async (req, res) => {
       password,
     });
 
+    // If patient is created successfully, send response
     if (newPatient) {
       res.status(201).json({ message: "Patient registered successfully" });
     }
@@ -24,45 +27,46 @@ exports.register = async (req, res) => {
   }
 };
 
+// Logs in a patient and returns access and refresh tokens
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Find the patient by email
-    const patient = await Patient.findOne({ email: email });
+    const patient = await Patient.findOne({ email });
 
-    // If patient is not found
+    // If patient is not found, return an error
     if (!patient) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Compare passwords
+    // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, patient.password);
 
-    // If password doesn't match
+    // If passwords don't match, return an error
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Generate access token (expires in 1 hour)
+    // Generate an access token (valid for 1 hour)
     const accessToken = jwt.sign(
       { id: patient._id, email: patient.email },
-      "access_secret", // Replace with a stronger secret and store in environment variables
+      process.env.ACCESS_TOKEN,
       { expiresIn: "1h" }
     );
 
-    // Generate refresh token (expires in 7 days, for example)
+    // Generate a refresh token (valid for 7 days)
     const refreshToken = jwt.sign(
       { id: patient._id, email: patient.email },
-      "refresh_secret", // Replace with a stronger secret and store in environment variables
+      process.env.REFRESH_TOKEN,
       { expiresIn: "7d" }
     );
 
-    // Store the refresh token in the database (optional, for revocation purposes)
+    // Save the refresh token in the database for the patient
     patient.refreshToken = refreshToken;
     await patient.save();
 
-    // Send both tokens
+    // Return the tokens and a success message
     res.status(200).json({
       accessToken,
       refreshToken,
@@ -72,45 +76,47 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+// Refreshes the access token using the refresh token
 exports.refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
 
-  // Check if refreshToken is provided
+  // Check if a refresh token is provided
   if (!refreshToken) {
     return res.status(400).json({ message: "Refresh token is required" });
   }
 
   try {
-    // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, "refresh_secret"); // Use the same secret used in login for refresh tokens
+    // Verify the provided refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
 
-    // Find the patient using the ID from the decoded token
+    // Find the patient by decoded ID
     const patient = await Patient.findById(decoded.id);
 
-    // If no patient found or refresh token doesn't match the one stored in DB (optional if you store refresh tokens)
+    // Check if the patient exists and if the refresh token matches
     if (!patient || patient.refreshToken !== refreshToken) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    // Generate a new access token
+    // Generate a new access token (valid for 1 hour)
     const newAccessToken = jwt.sign(
       { id: patient._id, email: patient.email },
-      "access_secret", // Use your access token secret
+      process.env.ACCESS_TOKEN,
       { expiresIn: "1h" }
     );
 
-    // Optionally, generate a new refresh token and update it in the DB
+    // Optionally generate a new refresh token (valid for 7 days)
     const newRefreshToken = jwt.sign(
       { id: patient._id, email: patient.email },
-      "refresh_secret", // Use your refresh token secret
+      process.env.REFRESH_TOKEN,
       { expiresIn: "7d" }
     );
 
-    // Update the refresh token in the database
+    // Update the patient's refresh token in the database
     patient.refreshToken = newRefreshToken;
     await patient.save();
 
-    // Send the new tokens to the client
+    // Return the new tokens
     res.status(200).json({
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
@@ -123,25 +129,34 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
+// Authenticates a patient for booking purposes
 exports.booking = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const patient = await Patient.findOne({ email: email });
+    // Find the patient by email
+    const patient = await Patient.findOne({ email });
 
+    // If patient is not found, return an error
     if (!patient) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, patient.password);
 
+    // If passwords don't match, return an error
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    // Generate a token (valid for 1 hour) for booking purposes
     const payload = { id: patient._id, email: patient.email };
-    const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
+      expiresIn: "1h",
+    });
 
+    // Return the token and success message
     res.status(200).json({ token, message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });

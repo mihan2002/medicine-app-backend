@@ -5,7 +5,7 @@ module.exports = gql`
     firstName: String!
     lastName: String!
     dateOfBirth: String!
-    gender: String!
+    gender: String
     email: String!
     password: String!
     completedAppointments: [Appointment]
@@ -34,7 +34,7 @@ module.exports = gql`
   }
 
   type Query {
-    getPatientByEmail(email: String!): Patient!
+    getPatientByID: Patient!
     getAllPatients: [Patient]
   }
 

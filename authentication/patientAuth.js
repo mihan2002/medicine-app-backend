@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const authenticateToken = (req, res, next) => {
-  const token = req.header("Authorization");
-  console.log(token);
+  // Retrieve token from cookies
+  const token = req.cookies.access_token;
 
   if (!token) {
     return res
@@ -11,8 +12,7 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, "secret");
-
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
     req.user = decoded.id;
     next();
   } catch (error) {
