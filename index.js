@@ -24,7 +24,7 @@ const SDK_KEY = process.env.SDK_KEY;
 const SDK_SECRET = process.env.SDK_SECRET;
 
 const corsOptions = {
-  origin: "http://localhost:5173", // React frontend's URL
+  //origin: "http://localhost:5173", // React frontend's URL
   credentials: true, // Allow cookies (credentials) to be sent and received
 };
 
@@ -39,7 +39,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes
 app.use("/patients", require("./routes/patientRoutes"));
-
+app.use("/doctors", require("./routes/doctorRoutes"));
 // Signature route
 // app.get("/signature", (req, res) => {
 //   const iat = Math.round(new Date().getTime() / 1000) - 30;

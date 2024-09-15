@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 
+const db = mongoose.connection.useDb("mydatabase");
+
 // Define the schema for doctor accounts
 const DoctorSchema = new Schema(
   {
@@ -38,17 +40,13 @@ const DoctorSchema = new Schema(
     contactNumber: {
       type: String,
       required: true,
-    },videoVisitHours:{
-
-    },education:{
-
-    },recommendation:{
-
     },
-    languagesSpoken:{
-      type:String,
-    }
-    
+    videoVisitHours: {},
+    education: {},
+    recommendation: {},
+    languagesSpoken: {
+      type: String,
+    },
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt timestamps
@@ -110,6 +108,6 @@ DoctorSchema.statics.getDoctorByEmail = async function (email) {
   }
 };
 
-const Doctor = mongoose.model("Doctor", DoctorSchema);
+const Doctor = db.model("Doctor", DoctorSchema);
 
 module.exports = Doctor;
