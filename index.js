@@ -13,8 +13,11 @@ const cookieParser = require("cookie-parser");
 
 const MDB = process.env.MONGO_URI;
 
-const typeDefs = require("./graphQl/typeDefs");
-const resolvers = require("./graphQl/resolvers");
+const patientTypeDefs = require("./graphQl/Patient/typeDefs");
+const patientResolvers = require("./graphQl/Patient/resolvers");
+
+const DoctorTypeDefs = require("./graphQl/Doctor/typeDefs");
+const DoctorResolvers = require("./graphQl/Doctor/resolvers");
 
 const app = express();
 
@@ -24,7 +27,7 @@ const SDK_KEY = process.env.SDK_KEY;
 const SDK_SECRET = process.env.SDK_SECRET;
 
 const corsOptions = {
-  //origin: "http://localhost:5173", // React frontend's URL
+  origin: "http://localhost:5173", // React frontend's URL
   credentials: true, // Allow cookies (credentials) to be sent and received
 };
 
@@ -85,8 +88,8 @@ app.use(auth);
 
 // Apollo Server setup
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+  typeDefs: [patientTypeDefs, DoctorTypeDefs],
+  resolvers: [patientResolvers, DoctorResolvers],
   context: ({ req }) => {
     return { user: req.user }; // This will be available to resolvers
   },

@@ -7,9 +7,11 @@ exports.register = async (req, res) => {
   const { firstName, lastName, dateOfBirth, gender, email, password } =
     req.body;
 
+  console.log(req.body);
+
   try {
     // Create a new patient using the Patient model
-    const newPatient = await Patient.addPatient({
+    const patient = await Patient.addPatient({
       firstName,
       lastName,
       dateOfBirth,
@@ -19,9 +21,29 @@ exports.register = async (req, res) => {
     });
 
     // If patient is created successfully, send response
-    if (newPatient) {
-      res.status(201).json({ message: "Patient registered successfully" });
-    }
+    const accessToken = jwt.sign(
+      { id: patient._id, email: patient.email },
+      process.env.ACCESS_TOKEN,
+      { expiresIn: "1h" }
+    );
+
+    // Generate a refresh token (valid for 7 days)
+    const refreshToken = jwt.sign(
+      { id: patient._id, email: patient.email },
+      process.env.REFRESH_TOKEN,
+      { expiresIn: "7d" }
+    );
+
+    // Save the refresh token in the database for the patient
+    patient.refreshToken = refreshToken;
+    await patient.save();
+
+    // Return the tokens and a success message
+    res.status(200).json({
+      accessToken,
+      refreshToken,
+      message: "Login successful",
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

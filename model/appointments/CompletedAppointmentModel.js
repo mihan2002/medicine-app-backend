@@ -1,18 +1,23 @@
-const Appointment = require("./appointmetModel");
+const Appointment = require("./appointmentModel"); // Import the base Appointment model
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
+// Define the schema for completed appointments
 const CompletedAppointmentSchema = new Schema({
   outcome: {
     type: String,
     required: true,
   },
-  followUpDate: Date,
+  followUpDate: {
+    type: Date,
+  },
 });
 
+// Use discriminator to create CompletedAppointment model
 const CompletedAppointment = Appointment.discriminator(
   "CompletedAppointment",
   CompletedAppointmentSchema
 );
 
-module.exports = {
-  CompletedAppointment,
-};
+// Export the CompletedAppointment model
+module.exports = CompletedAppointment;

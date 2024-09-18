@@ -1,8 +1,7 @@
+// Define the schema for patient accounts
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
-
-// Define the schema for patient accounts
 const db = mongoose.connection.useDb("mydatabase");
 
 const PatientSchema = new Schema(
@@ -24,18 +23,6 @@ const PatientSchema = new Schema(
       enum: ["male", "female"],
       required: false,
     },
-    // ethnicity: {
-    //   type: String,
-    //   required: true,
-    // },
-    // height: {
-    //   type: Number,
-    //   required: true,
-    // },
-    // weight: {
-    //   type: Number,
-    //   required: true,
-    // },
     languagesSpoken: {
       type: String,
       required: false,
@@ -58,8 +45,7 @@ const PatientSchema = new Schema(
       type: String,
       required: false,
     },
-    //preExisitingConditions: [{ type: String }],
-
+    existingConditions: { type: String, required: false },
     completedAppointments: [
       {
         type: Schema.Types.ObjectId,
@@ -78,6 +64,7 @@ const PatientSchema = new Schema(
   }
 );
 
+// Password hashing before save
 PatientSchema.pre("save", async function (next) {
   if (this.password) {
     try {
@@ -94,56 +81,80 @@ PatientSchema.pre("save", async function (next) {
   }
 });
 
-// Add a new patient
 PatientSchema.statics.addPatient = async function (patientData) {
   try {
-    // Check if a patient with the given email already exists
-    const existingPatient = await this.findOne({
-      email: patientData.email,
-    });
+    // Check if a patient already exists with the same email or Google ID
+   
+    
+    const existingPatient = await this.findOne({ email: patientData.email });
+
     if (existingPatient) {
-      throw new Error("Patient with this email already exists.");
+      throw new Error("Patient with this email.");
     }
 
-    // Create a new patient
+    // Create and save the new patient
     const newPatient = new this(patientData);
     await newPatient.save();
+
     return newPatient;
   } catch (error) {
-    throw error;
+    throw new Error(error.message);
   }
 };
 
-// Get all patients
-PatientSchema.statics.getAllPatients = async function () {
+// Flexible method to get patient data by ID, Google ID, or email
+PatientSchema.statics.getPatient = async function (identifier) {
   try {
-    const patients = await this.find();
-    return patients;
-  } catch (error) {
-    throw error;
-  }
-};
-PatientSchema.statics.getPatientByGoogleId = async function (googleId) {
-  try {
-    const patient = await this.findOne({ googleId: googleId });
-    if (!patient) {
-      return false;
+    // Check if identifier is an ObjectId, GoogleId, or email
+    const query = {};
+
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      // If it's a valid ObjectId, search by _id (patient ID)
+      query._id = identifier;
+    } else if (identifier.includes("@")) {
+      // If it contains '@', treat it as an email
+      query.email = identifier;
+    } else {
+      // Otherwise, treat it as a Google ID
+      query.googleId = identifier;
     }
-    return patient;
-  } catch (error) {
-    throw error;
-  }
-};
+    let patient;
+    try {
+      // Find the patient based on the constructed query
+      patient = await this.findOne(query)
+        .populate({
+          path: "completedAppointments",
+          select: "appointmentDate doctorName status doctorId", // Populate appointment fields
+          populate: {
+            path: "docId", // Path to doctor reference in Appointment
+            select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
+          },
+        })
+        .populate({
+          path: "upcomingAppointments",
+          select: "appointmentDate doctorName status doctorId", // Populate appointment fields
+          populate: {
+            path: "docId", // Path to doctor reference in Appointment
+            select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
+          },
+        });
+    } catch (err) {
+      patient = await this.findOne(query);
+    }
 
-// Get a specific patient by email
-PatientSchema.statics.getPatientByEmail = async function (email) {
-  try {
-    const patient = await this.findOne({ email: email });
     if (!patient) {
       throw new Error("Patient not found.");
     }
+
+    // Handle missing appointments gracefully
+    patient.completedAppointments = patient.completedAppointments || [];
+    patient.upcomingAppointments = patient.upcomingAppointments || [];
+
     return patient;
   } catch (error) {
+    if (error.name === "MongoError") {
+      throw new Error("Database error: Unable to retrieve patient data.");
+    }
     throw error;
   }
 };

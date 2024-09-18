@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const db = mongoose.connection.useDb("mydatabase");
 // Base Appointment Schema
 const AppointmentSchema = new Schema(
   {
@@ -22,20 +23,23 @@ const AppointmentSchema = new Schema(
       type: String,
       required: true,
     },
-    notes: { String },
-    prescription:[{
-      type:String,
-      
-    }]
+    notes: {
+      type: String,
+    },
+    prescription: [
+      {
+        type: String,
+      },
+    ],
   },
   {
-    discriminatorKey: "status",
+    discriminatorKey: "appointmentType", // The key used to differentiate appointment types
     timestamps: true, // Automatically add createdAt and updatedAt timestamps
   }
 );
 
-const Appointment = mongoose.model("Appointment", AppointmentSchema);
+// Create the base Appointment model
+const Appointment = db.model("Appointment", AppointmentSchema);
 
-module.exports = {
-  Appointment,
-};
+// Export the base model
+module.exports = Appointment;

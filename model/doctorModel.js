@@ -4,6 +4,8 @@ const Schema = mongoose.Schema;
 
 const db = mongoose.connection.useDb("mydatabase");
 
+const Review = require("./review/review"); // Import the Review model
+
 // Define the schema for doctor accounts
 const DoctorSchema = new Schema(
   {
@@ -14,6 +16,10 @@ const DoctorSchema = new Schema(
     lastName: {
       type: String,
       required: true,
+    },
+    imageUrl: {
+      type: String,
+      required: false,
     },
     dateOfBirth: {
       type: Date,
@@ -42,17 +48,57 @@ const DoctorSchema = new Schema(
       required: true,
     },
     videoVisitHours: {},
-    education: {},
-    recommendation: {},
+
+    // New fields added here
+    about: {
+      type: String,
+      required: true,
+    },
+    qualifications: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    professionalBackground: {
+      type: String,
+      required: true,
+    },
+    contactInformation: {
+      phone: {
+        type: String,
+        required: true,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        required: true,
+      },
+    },
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0, // Aggregate rating based on reviews
+    },
+    professionStartedYear: {
+      type: Number,
+      required: true,
+    },
     languagesSpoken: {
       type: String,
     },
+    reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }], // Reference to Review model
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt timestamps
   }
 );
 
+// Password hashing middleware
 DoctorSchema.pre("save", async function (next) {
   try {
     if (this.isModified("password") || this.isNew) {
@@ -68,7 +114,6 @@ DoctorSchema.pre("save", async function (next) {
 // Add a new doctor
 DoctorSchema.statics.addDoctor = async function (doctorData) {
   try {
-    // Check if a doctor with the given email already exists
     const existingDoctor = await this.findOne({
       email: doctorData.email,
     });
@@ -88,21 +133,43 @@ DoctorSchema.statics.addDoctor = async function (doctorData) {
 // Get all doctors
 DoctorSchema.statics.getAllDoctors = async function () {
   try {
-    const doctors = await this.find();
+    const doctors = await this.find().populate("reviews"); // Populate reviews when fetching all doctors
     return doctors;
+  } catch (error) {
+    console.log(error);
+
+    throw error;
+  }
+};
+
+// Get a specific doctor by email and populate reviews
+DoctorSchema.statics.getDoctorByID = async function (id) {
+  try {
+    const doctor = await this.findOne({ id }).populate({
+      path: "reviews",
+      populate: {
+        path: "user",
+        select: "firstName lastName userImageUrl", // Populate user details in reviews
+      },
+    });
+    if (!doctor) {
+      throw new Error("Doctor not found.");
+    }
+    return doctor;
   } catch (error) {
     throw error;
   }
 };
 
-// Get a specific doctor by email
-DoctorSchema.statics.getDoctorByEmail = async function (email) {
+// Method to update doctor's rating based on reviews
+DoctorSchema.methods.updateRating = async function () {
   try {
-    const doctor = await this.findOne({ email });
-    if (!doctor) {
-      throw new Error("Doctor not found.");
-    }
-    return doctor;
+    const reviews = await Review.find({ doctor: this._id });
+    if (reviews.length === 0) return;
+    const avgRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    this.rating = avgRating;
+    await this.save();
   } catch (error) {
     throw error;
   }
