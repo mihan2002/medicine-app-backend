@@ -8,7 +8,11 @@ const resolvers = {
       return data;
     },
     getDoctorById: async (_, { id }) => {
-      return await Doctor.getDoctorByID(id);
+      console.log(id);
+      const data = await Doctor.getDoctorByID(id);
+      console.log(data);
+
+      return data;
     },
   },
   Mutation: {

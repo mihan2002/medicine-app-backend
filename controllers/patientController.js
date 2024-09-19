@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
     const accessToken = jwt.sign(
       { id: patient._id, email: patient.email },
       process.env.ACCESS_TOKEN,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
     // Generate a refresh token (valid for 7 days)
@@ -74,7 +74,7 @@ exports.login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: patient._id, email: patient.email },
       process.env.ACCESS_TOKEN,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
     // Generate a refresh token (valid for 7 days)
@@ -124,7 +124,7 @@ exports.refreshToken = async (req, res) => {
     const newAccessToken = jwt.sign(
       { id: patient._id, email: patient.email },
       process.env.ACCESS_TOKEN,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
     // Optionally generate a new refresh token (valid for 7 days)
@@ -175,7 +175,7 @@ exports.booking = async (req, res) => {
     // Generate a token (valid for 1 hour) for booking purposes
     const payload = { id: patient._id, email: patient.email };
     const token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
-      expiresIn: "1h",
+      expiresIn: "2h",
     });
 
     // Return the token and success message

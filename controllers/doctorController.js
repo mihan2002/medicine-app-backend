@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: doctor._id, email: doctor.email },
       process.env.ACCESS_TOKEN,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
     // Generate a refresh token (valid for 7 days)

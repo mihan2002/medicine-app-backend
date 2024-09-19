@@ -145,7 +145,7 @@ DoctorSchema.statics.getAllDoctors = async function () {
 // Get a specific doctor by email and populate reviews
 DoctorSchema.statics.getDoctorByID = async function (id) {
   try {
-    const doctor = await this.findOne({ id }).populate({
+    const doctor = await this.findOne({ _id:id }).populate({
       path: "reviews",
       populate: {
         path: "user",
@@ -157,6 +157,8 @@ DoctorSchema.statics.getDoctorByID = async function (id) {
     }
     return doctor;
   } catch (error) {
+    console.log(error);
+    
     throw error;
   }
 };

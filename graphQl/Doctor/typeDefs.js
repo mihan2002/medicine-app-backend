@@ -23,34 +23,34 @@ const typeDefs = gql`
     rating: Float
     professionStartedYear: Int
     languagesSpoken: String
-    reviews: [Review] # References the Review type
-    createdAt: String!
-    updatedAt: String!
+    reviews: [Review]
+    createdAt: String
+    updatedAt: String
   }
 
   # Contact Information Type Definition
   type ContactInformation {
-    phone: String!
-    address: String!
-    email: String!
+    phone: String
+    address: String
+    email: String
   }
 
   # Review Type Definition
   type Review {
-    id: ID!
-    user: User!
-    doctor: Doctor!
-    rating: Float!
-    comment: String!
-    createdAt: String!
-    updatedAt: String!
+    id: ID
+    user: User
+    doctor: Doctor
+    rating: Float
+    comment: String
+    createdAt: String
+    updatedAt: String
   }
 
   # User Type Definition (Referencing user who writes reviews)
   type User {
-    id: ID!
-    firstName: String!
-    lastName: String!
+    id: ID
+    firstName: String
+    lastName: String
     userImageUrl: String
   }
 

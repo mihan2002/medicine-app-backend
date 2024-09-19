@@ -84,7 +84,7 @@ app.use(passport.session());
 
 app.use("/auth", authRoute);
 
- app.use(auth);
+app.use(auth);
 
 // Apollo Server setup
 const server = new ApolloServer({
