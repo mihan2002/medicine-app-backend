@@ -1,20 +1,54 @@
-const Appointment = require("./appointmentModel"); // Import the base Appointment model
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Define the schema for completed appointments
-const CompletedAppointmentSchema = new Schema({
-  outcome: {
-    type: String,
-    required: true,
-  },
-  followUpDate: {
-    type: Date,
-  },
-});
+const db = mongoose.connection.useDb("mydatabase");
 
-// Use discriminator to create CompletedAppointment model
-const CompletedAppointment = Appointment.discriminator(
+// Define the schema for completed appointments
+const CompletedAppointmentSchema = new Schema(
+  {
+    docId: {
+      type: Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true,
+    },
+    patientId: {
+      type: Schema.Types.ObjectId,
+      ref: "Patient",
+      required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    },
+    outcome: {
+      type: String,
+      required: false,
+    },
+    followUpDate: {
+      type: Date,
+      required: false,
+    },
+    reason: {
+      type: String,
+      required: false,
+    },
+    notes: {
+      type: String,
+      required: false,
+    },
+    prescription: [
+      {
+        type: String,
+      },
+    ],
+  },
+  {
+    timestamps: true, // Automatically add createdAt and updatedAt timestamps
+  }
+);
+
+// Create the CompletedAppointment model (this will use its own collection)
+const CompletedAppointment = db.model(
   "CompletedAppointment",
   CompletedAppointmentSchema
 );

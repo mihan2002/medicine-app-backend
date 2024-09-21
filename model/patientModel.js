@@ -4,6 +4,8 @@ const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 const db = mongoose.connection.useDb("mydatabase");
 
+const UpcomingAppointment = require("./appointments/UpcomingAppointmentModel");
+
 const PatientSchema = new Schema(
   {
     firstName: {
@@ -49,13 +51,15 @@ const PatientSchema = new Schema(
     completedAppointments: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Appointment",
+        ref: "CompletedAppointment",
+        unique: false,
       },
     ],
     upcomingAppointments: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Appointment",
+        ref: "UpcomingAppointment",
+        unique: false,
       },
     ],
   },
@@ -84,8 +88,7 @@ PatientSchema.pre("save", async function (next) {
 PatientSchema.statics.addPatient = async function (patientData) {
   try {
     // Check if a patient already exists with the same email or Google ID
-   
-    
+
     const existingPatient = await this.findOne({ email: patientData.email });
 
     if (existingPatient) {
@@ -156,6 +159,66 @@ PatientSchema.statics.getPatient = async function (identifier) {
       throw new Error("Database error: Unable to retrieve patient data.");
     }
     throw error;
+  }
+};
+
+// Method to add completed appointment
+PatientSchema.statics.addCompletedAppointment = async function (
+  patientId,
+  upcomingAppointmentId,
+  completedAppointmentId
+) {
+  try {
+    // Find the patient by ID
+    const patient = await this.findById(patientId);
+
+    if (!patient) {
+      throw new Error("Patient not found.");
+    }
+
+    // Remove the upcoming appointment from the patient's upcomingAppointments array
+    const updatedUpcomingAppointments = patient.upcomingAppointments.filter(
+      (appointment) => !appointment.equals(upcomingAppointmentId)
+    );
+    patient.upcomingAppointments = updatedUpcomingAppointments;
+
+    // Remove the upcoming appointment document from the UpcomingAppointment collection
+    await UpcomingAppointment.findByIdAndDelete(upcomingAppointmentId);
+
+    // Add the completed appointment to the completedAppointments array
+    patient.completedAppointments.push(completedAppointmentId);
+
+    // Save the updated patient document
+    await patient.save();
+
+    return patient;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Method to add upcoming appointment
+PatientSchema.statics.addUpcomingAppointment = async function (
+  patientId,
+  appointmentId
+) {
+  try {
+    // Find the patient by ID
+    const patient = await this.findById(patientId);
+
+    if (!patient) {
+      throw new Error("Patient not found.");
+    }
+
+    // Add the appointment to the upcomingAppointments array
+    patient.upcomingAppointments.push(appointmentId);
+
+    // Save the updated patient document
+    await patient.save();
+
+    return patient;
+  } catch (error) {
+    throw new Error(error.message);
   }
 };
 

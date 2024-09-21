@@ -1,17 +1,51 @@
-const Appointment = require("./appointmentModel"); // Import the base Appointment model
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Define the schema for upcoming appointments
-const UpcomingAppointmentSchema = new Schema({
-  reminderSent: {
-    type: Boolean,
-    default: false,
-  },
-});
+const db = mongoose.connection.useDb("mydatabase");
 
-// Use discriminator to create UpcomingAppointment model
-const UpcomingAppointment = Appointment.discriminator(
+// Define the schema for upcoming appointments
+const UpcomingAppointmentSchema = new Schema(
+  {
+    docId: {
+      type: Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true,
+    },
+    patientId: {
+      type: Schema.Types.ObjectId,
+      ref: "Patient",
+      required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    
+    },
+    reminderSent: {
+      type: Boolean,
+      default: true,
+    },
+    reason: {
+      type: String,
+      required: false,
+    },
+    notes: {
+      type: String,
+      required: false,
+    },
+    prescription: [
+      {
+        type: String,
+      },
+    ],
+  },
+  {
+    timestamps: true, // Automatically add createdAt and updatedAt timestamps
+  }
+);
+
+// Create the UpcomingAppointment model (this will use its own collection)
+const UpcomingAppointment = db.model(
   "UpcomingAppointment",
   UpcomingAppointmentSchema
 );

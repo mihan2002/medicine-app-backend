@@ -1,6 +1,11 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Patient = require("../model/patientModel");
+const UpcomingAppointment = require("../model/appointments/UpcomingAppointmentModel");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+const mongoose = require("mongoose");
 
 // Registers a new patient
 exports.register = async (req, res) => {
@@ -152,35 +157,65 @@ exports.refreshToken = async (req, res) => {
 };
 
 // Authenticates a patient for booking purposes
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+const Doctor = require("../model/doctorModel");
+
 exports.booking = async (req, res) => {
-  const { email, password } = req.body;
+  const { docId, date, time } = req.body; // Extract docId, date, and time from the request body
+  const user = req.user; // Get the authenticated user (assuming user is authenticated and available in req.user)
+
+  console.log(user);
+  console.log(req.body);
 
   try {
-    // Find the patient by email
-    const patient = await Patient.findOne({ email });
-
-    // If patient is not found, return an error
-    if (!patient) {
-      return res.status(400).json({ message: "Invalid email or password" });
+    // Check if the doctor ID, date, and time are provided
+    if (!docId || !date || !time) {
+      return res
+        .status(400)
+        .json({ error: "All fields (docId, date, time) are required." });
     }
 
-    // Compare the provided password with the stored hashed password
-    const isMatch = await bcrypt.compare(password, patient.password);
+    // Parse the date and time into a single Date object in the desired time zone
+    const appointmentDate = dayjs.tz(
+      `${date} ${time}`,
+      "YYYY-MM-DD HH:mm",
+      "UTC"
+    );
 
-    // If passwords don't match, return an error
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+    console.log(appointmentDate.toString()); // This will log the correct time in UTC
+
+    // Check if the appointment date is valid and not in the past
+    if (!appointmentDate.isValid() || appointmentDate.isBefore(dayjs())) {
+      return res
+        .status(400)
+        .json({ error: "Invalid appointment date or time." });
     }
 
-    // Generate a token (valid for 1 hour) for booking purposes
-    const payload = { id: patient._id, email: patient.email };
-    const token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
-      expiresIn: "2h",
+    // Create the new appointment object
+    const newAppointment = new UpcomingAppointment({
+      docId: new mongoose.Types.ObjectId(docId), // Use `new` to instantiate ObjectId
+      patientId: new mongoose.Types.ObjectId(user), // Use `new` for ObjectId here too
+      date: appointmentDate.toDate(), // Convert back to JavaScript Date object for storage
     });
 
-    // Return the token and success message
-    res.status(200).json({ token, message: "Login successful" });
+    console.log(newAppointment);
+
+    // Save the appointment to the database
+    const savedAppointment = await newAppointment.save();
+
+    await Patient.addUpcomingAppointment(user, savedAppointment._id);
+
+    // Return a success response with the saved appointment details
+    return res.status(201).json({
+      message: "Appointment booked successfully",
+      appointment: savedAppointment,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error booking appointment:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while booking the appointment" });
   }
 };

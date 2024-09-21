@@ -19,6 +19,8 @@ const patientResolvers = require("./graphQl/Patient/resolvers");
 const DoctorTypeDefs = require("./graphQl/Doctor/typeDefs");
 const DoctorResolvers = require("./graphQl/Doctor/resolvers");
 
+const AppointmentTypeDefs = require("./graphQl/Appointments/typeDefs");
+const AppointmentResolvers = require("./graphQl/Appointments/resolvers");
 const app = express();
 
 const auth = require("./authentication/patientAuth");
@@ -88,8 +90,8 @@ app.use(auth);
 
 // Apollo Server setup
 const server = new ApolloServer({
-  typeDefs: [patientTypeDefs, DoctorTypeDefs],
-  resolvers: [patientResolvers, DoctorResolvers],
+  typeDefs: [patientTypeDefs, DoctorTypeDefs,AppointmentTypeDefs],
+  resolvers: [patientResolvers, DoctorResolvers,AppointmentResolvers],
   context: ({ req }) => {
     return { user: req.user }; // This will be available to resolvers
   },
