@@ -47,8 +47,7 @@ const CompletedAppointmentSchema = new Schema(
   }
 );
 
-// Create the CompletedAppointment model (this will use its own collection)
-const CompletedAppointment = db.model(
+const CompletedAppointment = mongoose.model(
   "CompletedAppointment",
   CompletedAppointmentSchema
 );

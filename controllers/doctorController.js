@@ -63,6 +63,11 @@ exports.register = async (req, res) => {
     contactNumber,
     education,
     languagesSpoken,
+    about, // New fields
+    qualifications,
+    professionalBackground,
+    professionStartedYear,
+    imageUrl,
   } = req.body;
 
   try {
@@ -78,14 +83,44 @@ exports.register = async (req, res) => {
       contactNumber,
       education,
       languagesSpoken,
+      about, // New fields
+      qualifications,
+      professionalBackground,
+      professionStartedYear,
+      imageUrl, // Optional
     });
-
 
     // If doctor is created successfully, send a response
     if (newDoctor) {
-      res.status(201).json({ message: "Doctor registered successfully" });
+      res.status(201).json({
+        message: "Doctor registered successfully",
+        doctor: {
+          id: newDoctor._id,
+          firstName: newDoctor.firstName,
+          lastName: newDoctor.lastName,
+          specialization: newDoctor.specialization,
+          contactNumber: newDoctor.contactNumber,
+          email: newDoctor.email,
+          about: newDoctor.about,
+          qualifications: newDoctor.qualifications,
+          professionalBackground: newDoctor.professionalBackground,
+          professionStartedYear: newDoctor.professionStartedYear,
+          rating: newDoctor.rating,
+          languagesSpoken: newDoctor.languagesSpoken,
+          imageUrl: newDoctor.imageUrl,
+        },
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    // Handling different error types more gracefully
+    if (error.message === "Doctor with this email already exists.") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    res.status(500).json({
+      message: "Server error, unable to register doctor",
+      error: error.message,
+    });
   }
 };
+

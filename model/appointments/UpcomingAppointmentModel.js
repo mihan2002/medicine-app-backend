@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+// Connect to your default database, then switch to "mydatabase"
 const db = mongoose.connection.useDb("mydatabase");
 
 // Define the schema for upcoming appointments
@@ -19,7 +20,6 @@ const UpcomingAppointmentSchema = new Schema(
     date: {
       type: Date,
       required: true,
-    
     },
     reminderSent: {
       type: Boolean,
@@ -44,11 +44,11 @@ const UpcomingAppointmentSchema = new Schema(
   }
 );
 
-// Create the UpcomingAppointment model (this will use its own collection)
-const UpcomingAppointment = db.model(
+// Create the UpcomingAppointment model
+const UpcomingAppointment = mongoose.model(
   "UpcomingAppointment",
   UpcomingAppointmentSchema
 );
 
-// Export the UpcomingAppointment model
+// Export the model properly
 module.exports = UpcomingAppointment;

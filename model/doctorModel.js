@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 
-const db = mongoose.connection.useDb("mydatabase");
+
 
 const Review = require("./review/review"); // Import the Review model
 
@@ -47,7 +47,7 @@ const DoctorSchema = new Schema(
       type: String,
       required: true,
     },
-    videoVisitHours: {},
+    videoVisitHours: { type: Number, required: false, default: 0 },
 
     // New fields added here
     about: {
@@ -64,20 +64,6 @@ const DoctorSchema = new Schema(
       type: String,
       required: true,
     },
-    contactInformation: {
-      phone: {
-        type: String,
-        required: true,
-      },
-      address: {
-        type: String,
-        required: true,
-      },
-      email: {
-        type: String,
-        required: true,
-      },
-    },
     rating: {
       type: Number,
       min: 0,
@@ -86,7 +72,8 @@ const DoctorSchema = new Schema(
     },
     professionStartedYear: {
       type: Number,
-      required: true,
+      required: false,
+      default: 0,
     },
     languagesSpoken: {
       type: String,
@@ -145,7 +132,7 @@ DoctorSchema.statics.getAllDoctors = async function () {
 // Get a specific doctor by email and populate reviews
 DoctorSchema.statics.getDoctorByID = async function (id) {
   try {
-    const doctor = await this.findOne({ _id:id }).populate({
+    const doctor = await this.findOne({ _id: id }).populate({
       path: "reviews",
       populate: {
         path: "user",
@@ -158,7 +145,7 @@ DoctorSchema.statics.getDoctorByID = async function (id) {
     return doctor;
   } catch (error) {
     console.log(error);
-    
+
     throw error;
   }
 };
@@ -177,6 +164,6 @@ DoctorSchema.methods.updateRating = async function () {
   }
 };
 
-const Doctor = db.model("Doctor", DoctorSchema);
+const Doctor = mongoose.model("Doctor", DoctorSchema);
 
 module.exports = Doctor;

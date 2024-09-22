@@ -161,6 +161,44 @@ PatientSchema.statics.getPatient = async function (identifier) {
     throw error;
   }
 };
+PatientSchema.statics.getPatients = async function () {
+  try {
+    // Check if identifier is an ObjectId, GoogleId, or email
+    let 
+    // Find the patient based on the constructed query
+    patient = await this.find()
+      .populate({
+        path: "completedAppointments",
+        select: "appointmentDate doctorName status doctorId", // Populate appointment fields
+        populate: {
+          path: "docId", // Path to doctor reference in Appointment
+          select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
+        },
+      })
+      .populate({
+        path: "upcomingAppointments",
+        select: "appointmentDate doctorName status doctorId", // Populate appointment fields
+        populate: {
+          path: "docId", // Path to doctor reference in Appointment
+          select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
+        },
+      });
+    console.log(patient);
+
+    if (!patient) {
+      throw new Error("Patient not found.");
+    }
+
+
+
+    return patient;
+  } catch (error) {
+    if (error.name === "MongoError") {
+      throw new Error("Database error: Unable to retrieve patient data.");
+    }
+    throw error;
+  }
+};
 
 // Method to add completed appointment
 PatientSchema.statics.addCompletedAppointment = async function (
@@ -222,6 +260,6 @@ PatientSchema.statics.addUpcomingAppointment = async function (
   }
 };
 
-const Patient = db.model("Patient", PatientSchema);
+const Patient = mongoose.model("Patient", PatientSchema);
 
 module.exports = Patient;

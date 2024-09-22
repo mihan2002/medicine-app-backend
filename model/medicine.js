@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
+const Schema = mongoose.Schema;
+const db = mongoose.connection.useDb("mydatabase");
 // Base Appointment Schema
 const MedicineSchema = new Schema(
   {
@@ -23,10 +24,11 @@ const MedicineSchema = new Schema(
       required: true,
     },
     notes: { String },
-    prescription:[{
-      type:String,
-      
-    }]
+    prescription: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     discriminatorKey: "status",
@@ -37,5 +39,5 @@ const MedicineSchema = new Schema(
 const Medicine = mongoose.model("Medicine", MedicineSchema);
 
 module.exports = {
-    Medicine,
+  Medicine,
 };

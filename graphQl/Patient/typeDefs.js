@@ -27,7 +27,7 @@ const typeDefs = gql`
   }
 
   type Appointment {
-    date: String!
+    date: Date
     reason: String!
     notes: String
     prescription: [String]

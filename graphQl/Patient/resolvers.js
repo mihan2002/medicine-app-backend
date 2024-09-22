@@ -26,7 +26,7 @@ const resolvers = {
     },
     getAllPatients: async () => {
       try {
-        const patients = await Patient.find();
+        const patients = await Patient.getPatients();
         return patients;
       } catch (error) {
         throw new Error(error.message);
