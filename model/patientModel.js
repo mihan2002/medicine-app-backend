@@ -47,7 +47,25 @@ const PatientSchema = new Schema(
       type: String,
       required: false,
     },
-    existingConditions: { type: String, required: false },
+    ethnicity: { type: String, required: false },
+    
+    existingConditions: {
+      type: String,
+      required: false,
+    },
+    weight: {
+      type: Number,
+      required: false,
+    },
+    height: {
+      type: Number,
+      required: false,
+    },
+    bloodType: {
+      type: String, // Added blood type field
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      required: false,
+    },
     completedAppointments: [
       {
         type: Schema.Types.ObjectId,
@@ -88,11 +106,10 @@ PatientSchema.pre("save", async function (next) {
 PatientSchema.statics.addPatient = async function (patientData) {
   try {
     // Check if a patient already exists with the same email or Google ID
-
     const existingPatient = await this.findOne({ email: patientData.email });
 
     if (existingPatient) {
-      throw new Error("Patient with this email.");
+      throw new Error("Patient with this email already exists.");
     }
 
     // Create and save the new patient
@@ -121,24 +138,21 @@ PatientSchema.statics.getPatient = async function (identifier) {
       // Otherwise, treat it as a Google ID
       query.googleId = identifier;
     }
+
     let patient;
     try {
       // Find the patient based on the constructed query
       patient = await this.findOne(query)
         .populate({
           path: "completedAppointments",
-          select: "appointmentDate doctorName status doctorId", // Populate appointment fields
           populate: {
             path: "docId", // Path to doctor reference in Appointment
-            select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
           },
         })
         .populate({
           path: "upcomingAppointments",
-          select: "appointmentDate doctorName status doctorId", // Populate appointment fields
           populate: {
             path: "docId", // Path to doctor reference in Appointment
-            select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
           },
         });
     } catch (err) {
@@ -161,29 +175,28 @@ PatientSchema.statics.getPatient = async function (identifier) {
     throw error;
   }
 };
+
 PatientSchema.statics.getPatients = async function () {
   try {
-    let // Find the patient based on the constructed query
-      patient = await this.find()
-        .populate({
-          path: "completedAppointments",
-          populate: {
-            path: "docId", // Path to doctor reference in Appointment
-          },
-        })
-        .populate({
-          path: "upcomingAppointments",
-          populate: {
-            path: "docId", // Path to doctor reference in Appointment
+    let patients = await this.find()
+      .populate({
+        path: "completedAppointments",
+        populate: {
+          path: "docId", // Path to doctor reference in Appointment
+        },
+      })
+      .populate({
+        path: "upcomingAppointments",
+        populate: {
+          path: "docId", // Path to doctor reference in Appointment
+        },
+      });
 
-          },
-        });
-
-    if (!patient) {
-      throw new Error("Patient not found.");
+    if (!patients) {
+      throw new Error("Patients not found.");
     }
 
-    return patient;
+    return patients;
   } catch (error) {
     if (error.name === "MongoError") {
       throw new Error("Database error: Unable to retrieve patient data.");

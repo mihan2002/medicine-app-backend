@@ -33,6 +33,26 @@ const resolvers = {
       }
     },
   },
+  Mutation: {
+    updatePatient: async (_, { id, ...updateData }, __) => {
+      try {
+        // Find the patient by ID and update the fields provided in the updateData
+        const updatedPatient = await Patient.findByIdAndUpdate(
+          id,
+          { $set: updateData },
+          { new: true, runValidators: true }
+        );
+
+        if (!updatedPatient) {
+          throw new Error("Patient not found");
+        }
+
+        return updatedPatient;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+  },
 };
 
 module.exports = resolvers;

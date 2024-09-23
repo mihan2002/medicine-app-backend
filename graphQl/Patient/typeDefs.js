@@ -13,7 +13,11 @@ const typeDefs = gql`
     languagesSpoken: String
     email: String!
     googleId: String
+    ethnicity: String
     existingConditions: String
+    weight: Float # New field for weight
+    height: Float # New field for height
+    bloodType: String # New field for blood type
     completedAppointments: [CompletedAppointment]
     upcomingAppointments: [UpcomingAppointment]
     createdAt: String!
@@ -24,6 +28,24 @@ const typeDefs = gql`
     getPatientByID: Patient
     getPatientByGoogleId(googleId: String!): Patient
     getAllPatients: [Patient!]
+  }
+
+  type Mutation {
+    updatePatient(
+      id: ID!
+      firstName: String
+      lastName: String
+      dateOfBirth: Date
+      gender: String
+      languagesSpoken: String
+      email: String
+      googleId: String
+      password: String
+      existingConditions: String
+      weight: Float
+      height: Float
+      bloodType: String
+    ): Patient
   }
 `;
 
