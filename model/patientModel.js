@@ -163,33 +163,25 @@ PatientSchema.statics.getPatient = async function (identifier) {
 };
 PatientSchema.statics.getPatients = async function () {
   try {
-    // Check if identifier is an ObjectId, GoogleId, or email
-    let 
-    // Find the patient based on the constructed query
-    patient = await this.find()
-      .populate({
-        path: "completedAppointments",
-        select: "appointmentDate doctorName status doctorId", // Populate appointment fields
-        populate: {
-          path: "docId", // Path to doctor reference in Appointment
-          select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
-        },
-      })
-      .populate({
-        path: "upcomingAppointments",
-        select: "appointmentDate doctorName status doctorId", // Populate appointment fields
-        populate: {
-          path: "docId", // Path to doctor reference in Appointment
-          select: "firstName lastName specialization email", // Replace with fields you want from Doctor schema
-        },
-      });
-    console.log(patient);
+    let // Find the patient based on the constructed query
+      patient = await this.find()
+        .populate({
+          path: "completedAppointments",
+          populate: {
+            path: "docId", // Path to doctor reference in Appointment
+          },
+        })
+        .populate({
+          path: "upcomingAppointments",
+          populate: {
+            path: "docId", // Path to doctor reference in Appointment
+
+          },
+        });
 
     if (!patient) {
       throw new Error("Patient not found.");
     }
-
-
 
     return patient;
   } catch (error) {

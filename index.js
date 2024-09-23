@@ -29,7 +29,7 @@ const SDK_KEY = process.env.SDK_KEY;
 const SDK_SECRET = process.env.SDK_SECRET;
 
 const corsOptions = {
- // origin: "http://localhost:5173", // React frontend's URL
+  origin: "http://localhost:5173", // React frontend's URL
   credentials: true, // Allow cookies (credentials) to be sent and received
 };
 
@@ -86,7 +86,7 @@ app.use(passport.session());
 
 app.use("/auth", authRoute);
 
-//app.use(auth);
+app.use(auth);
 
 // Apollo Server setup
 const server = new ApolloServer({

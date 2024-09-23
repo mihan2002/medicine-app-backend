@@ -15,11 +15,10 @@ const typeDefs = gql`
     email: String
     specialization: String
     contactNumber: String
-    videoVisitHours: String
+    videoVisitHours: Int
     about: String
     qualifications: [String]
     professionalBackground: String
-    contactInformation: ContactInformation
     rating: Float
     professionStartedYear: Int
     languagesSpoken: String
@@ -28,30 +27,15 @@ const typeDefs = gql`
     updatedAt: String
   }
 
-  # Contact Information Type Definition
-  type ContactInformation {
-    phone: String
-    address: String
-    email: String
-  }
-
   # Review Type Definition
   type Review {
     id: ID
-    user: User
+    user: Patient
     doctor: Doctor
     rating: Float
     comment: String
     createdAt: String
     updatedAt: String
-  }
-
-  # User Type Definition (Referencing user who writes reviews)
-  type User {
-    id: ID
-    firstName: String
-    lastName: String
-    userImageUrl: String
   }
 
   # Query Type Definition
@@ -74,20 +58,13 @@ const typeDefs = gql`
       about: String!
       qualifications: [String!]!
       professionalBackground: String!
-      contactInformation: ContactInformationInput!
+
       professionStartedYear: Int!
       languagesSpoken: String
     ): Doctor
 
     # Update rating for a specific doctor
     updateDoctorRating(id: ID!): Doctor
-  }
-
-  # Input Type for Contact Information in Mutations
-  input ContactInformationInput {
-    phone: String!
-    address: String!
-    email: String!
   }
 `;
 

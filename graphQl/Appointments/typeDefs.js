@@ -7,7 +7,7 @@ const typeDefs = gql`
   # Type for CompletedAppointment, extending the base Appointment
   type CompletedAppointment {
     id: ID!
-    docId: ID!
+    docId: Doctor!
     patientId: ID!
     date: Date!
     reason: String
@@ -23,8 +23,8 @@ const typeDefs = gql`
   # Type for UpcomingAppointment, extending the base Appointment
   type UpcomingAppointment {
     id: ID!
-    docId: ID!
-    patientId: ID!
+    docId: Doctor!
+    patientId: Patient!
     date: Date!
     reason: String
     notes: String

@@ -13,25 +13,11 @@ const typeDefs = gql`
     languagesSpoken: String
     email: String!
     googleId: String
-    completedAppointments: [Appointment]
-    upcomingAppointments: [Appointment]
+    existingConditions: String
+    completedAppointments: [CompletedAppointment]
+    upcomingAppointments: [UpcomingAppointment]
     createdAt: String!
     updatedAt: String!
-  }
-
-  type Doctor {
-    firstName: String!
-    lastName: String!
-    specialization: String!
-    email: String!
-  }
-
-  type Appointment {
-    date: Date
-    reason: String!
-    notes: String
-    prescription: [String]
-    doctor: Doctor!
   }
 
   type Query {
